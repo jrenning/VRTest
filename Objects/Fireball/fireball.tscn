@@ -1,0 +1,190 @@
+[gd_scene load_steps=20 format=3 uid="uid://cyo60indfsi6m"]
+
+[ext_resource type="Script" path="res://Objects/Fireball/fireball.gd" id="1_e25f3"]
+[ext_resource type="Texture2D" uid="uid://o4qj1q4gf1un" path="res://Objects/Fireball/Fireball-Bad.png" id="1_npxco"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_xjd3l"]
+radius = 0.1
+
+[sub_resource type="Shader" id="Shader_wfp6p"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.0.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlick_ggx;
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo : source_color,filter_linear_mipmap,repeat_enable;
+uniform float point_size : hint_range(0,128);
+uniform float roughness : hint_range(0,1);
+uniform sampler2D texture_metallic : hint_default_white,filter_linear_mipmap,repeat_enable;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness : hint_roughness_r,filter_linear_mipmap,repeat_enable;
+uniform float specular;
+uniform float metallic;
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+uniform vec3 uv2_scale;
+uniform vec3 uv2_offset;
+
+
+uniform sampler2D height_noise;
+
+
+
+
+void vertex() {
+	float freq = sqrt(VERTEX.x*VERTEX.x + VERTEX.y*VERTEX.y);
+	float amp = 0.1;
+	float angle = TIME*1.0+freq*2.0;
+	vec4 height_color = texture(height_noise, vec2(UV.y, UV.x));
+	VERTEX.y += height_color.r * 0.05;
+	VERTEX.y += height_color.r * 0.05 * cos(TIME*5.3);
+	VERTEX.y -= height_color.r * 0.05 * sin(TIME*1.3);
+	
+//	VERTEX.y += sin(angle)*amp;
+
+	
+}
+
+
+
+
+
+
+void fragment() {
+	vec2 base_uv = UV;
+	vec4 albedo_tex = texture(texture_albedo,base_uv);
+	vec4 height_tex = texture(height_noise, vec2(UV.x, UV.y));
+	ALBEDO = albedo.rgb * albedo_tex.rgb * height_tex.rgb;
+	float metallic_tex = dot(texture(texture_metallic,base_uv),metallic_texture_channel);
+	METALLIC = metallic_tex * metallic;
+	vec4 roughness_texture_channel = vec4(1.0,0.0,0.0,0.0);
+	float roughness_tex = dot(texture(texture_roughness,base_uv),roughness_texture_channel);
+	ROUGHNESS = roughness_tex * roughness;
+	SPECULAR = specular;
+	ALPHA = 0.7;
+}
+"
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_0af2h"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_jl3ji"]
+noise = SubResource("FastNoiseLite_0af2h")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4ivd8"]
+render_priority = 0
+shader = SubResource("Shader_wfp6p")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/point_size = 1.0
+shader_parameter/roughness = 0.45
+shader_parameter/metallic_texture_channel = Plane(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.55
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+shader_parameter/texture_albedo = ExtResource("1_npxco")
+shader_parameter/height_noise = SubResource("NoiseTexture2D_jl3ji")
+
+[sub_resource type="SphereMesh" id="SphereMesh_5hdxo"]
+material = SubResource("ShaderMaterial_4ivd8")
+radius = 0.1
+height = 0.2
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_h1p6f"]
+radius = 0.15
+
+[sub_resource type="Gradient" id="Gradient_viptb"]
+offsets = PackedFloat32Array(0, 0.239837, 0.666667, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0.239837, 0.239837, 0.239837, 1, 0.666667, 0.666667, 0.666667, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_d53wk"]
+gradient = SubResource("Gradient_viptb")
+
+[sub_resource type="Curve" id="Curve_lj6vl"]
+min_value = -200.0
+max_value = 200.0
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, -200), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_4h3ht"]
+curve = SubResource("Curve_lj6vl")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_uekeg"]
+lifetime_randomness = 0.5
+emission_shape = 1
+emission_sphere_radius = 0.25
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 0.2
+initial_velocity_max = 0.5
+linear_accel_curve = SubResource("CurveTexture_4h3ht")
+angle_min = -267.0
+color_ramp = SubResource("GradientTexture1D_d53wk")
+hue_variation_min = 0.1
+hue_variation_max = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iic3v"]
+albedo_color = Color(1, 0.12549, 0.207843, 1)
+metallic = 0.36
+
+[sub_resource type="SphereMesh" id="SphereMesh_sl1gd"]
+material = SubResource("StandardMaterial3D_iic3v")
+radius = 0.01
+height = 0.02
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_36if8"]
+emission_shape = 6
+emission_ring_axis = Vector3(0, 0, 1)
+emission_ring_height = 1.0
+emission_ring_radius = 1.0
+emission_ring_inner_radius = 0.0
+direction = Vector3(1, 5, 5)
+spread = 180.0
+gravity = Vector3(2, 5, 2)
+radial_accel_max = 8.99
+scale_max = 1.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uvkar"]
+albedo_color = Color(1, 0.701961, 0.231373, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_7ntt7"]
+material = SubResource("StandardMaterial3D_uvkar")
+radius = 0.02
+height = 0.04
+
+[node name="Fireball" type="RigidBody3D" node_paths=PackedStringArray("explosion_effect")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0)
+collision_layer = 0
+gravity_scale = 4.0
+script = ExtResource("1_e25f3")
+explosion_effect = NodePath("Explosion")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_xjd3l")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_5hdxo")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("SphereShape3D_h1p6f")
+
+[node name="Flames" type="GPUParticles3D" parent="."]
+lifetime = 0.3
+randomness = 0.69
+process_material = SubResource("ParticleProcessMaterial_uekeg")
+draw_pass_1 = SubResource("SphereMesh_sl1gd")
+
+[node name="Explosion" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 85
+lifetime = 0.5
+one_shot = true
+explosiveness = 1.0
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_36if8")
+draw_pass_1 = SubResource("SphereMesh_7ntt7")
+
+[connection signal="body_entered" from="Area3D" to="." method="_on_area_3d_body_entered"]

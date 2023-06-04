@@ -1,0 +1,138 @@
+[gd_scene load_steps=23 format=3 uid="uid://innfaucm5voe"]
+
+[ext_resource type="Script" path="res://Levels/main.gd" id="1_kg1f4"]
+[ext_resource type="PackedScene" uid="uid://b4kad2kuba1yn" path="res://addons/godot-xr-tools/hands/scenes/lowpoly/left_hand_low.tscn" id="2_n71ou"]
+[ext_resource type="PackedScene" uid="uid://l2n30mpbkdyw" path="res://addons/godot-xr-tools/hands/scenes/lowpoly/right_hand_low.tscn" id="3_dt1ce"]
+[ext_resource type="Script" path="res://Objects/Actions/RightHand.gd" id="3_o04y2"]
+[ext_resource type="PackedScene" uid="uid://diyu06cw06syv" path="res://addons/godot-xr-tools/player/player_body.tscn" id="4_af872"]
+[ext_resource type="PackedScene" uid="uid://bl2nuu3qhlb5k" path="res://addons/godot-xr-tools/functions/movement_direct.tscn" id="4_pcjnw"]
+[ext_resource type="PackedScene" uid="uid://b6bk2pj8vbj28" path="res://addons/godot-xr-tools/functions/movement_turn.tscn" id="5_7j2nl"]
+[ext_resource type="AudioStream" uid="uid://chtix0xgntp3q" path="res://Assets/Sounds/Fireball_cast3.wav" id="7_ltefd"]
+[ext_resource type="PackedScene" uid="uid://dwqh4amx4d3x4" path="res://Objects/Post/Post.tscn" id="8_838fm"]
+[ext_resource type="Shader" path="res://Levels/terrain.gdshader" id="9_irigb"]
+[ext_resource type="PackedScene" uid="uid://dapcwydodcywj" path="res://Objects/ShootingPost/shooting_post.tscn" id="11_y0rcq"]
+[ext_resource type="PackedScene" uid="uid://k2h2lj8wk85g" path="res://Objects/Wall/wall.tscn" id="12_igvo7"]
+[ext_resource type="AudioStream" uid="uid://b6fr7jnvjg61u" path="res://Assets/Sounds/background.wav" id="13_qdhub"]
+[ext_resource type="Script" path="res://Managers/TextManager.gd" id="14_u32yr"]
+[ext_resource type="PackedScene" uid="uid://dpq2qibu7ek3v" path="res://Objects/Turret/turrent_enemy.tscn" id="15_aemk8"]
+
+[sub_resource type="Gradient" id="Gradient_npau4"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ugm0e"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0ljeg"]
+color_ramp = SubResource("Gradient_npau4")
+noise = SubResource("FastNoiseLite_ugm0e")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4pwkx"]
+render_priority = 0
+shader = ExtResource("9_irigb")
+shader_parameter/first_color = Color(0.372549, 0.807843, 0.337255, 1)
+shader_parameter/second_color = Color(0.0941176, 0.737255, 0.360784, 0.890196)
+shader_parameter/position = 0.5
+shader_parameter/size = 0.5
+shader_parameter/angle = 180.0
+shader_parameter/height_map = SubResource("NoiseTexture2D_0ljeg")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_7vtax"]
+material = SubResource("ShaderMaterial_4pwkx")
+size = Vector2(100, 100)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k2le4"]
+size = Vector3(100, 1, 100)
+
+[sub_resource type="Environment" id="Environment_iiwrc"]
+background_energy_multiplier = 2.37
+glow_enabled = true
+glow_bloom = 0.49
+fog_light_color = Color(0.517647, 0.552941, 0.298039, 1)
+volumetric_fog_albedo = Color(1, 0.384314, 0.0470588, 1)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_kg1f4")
+
+[node name="XROrigin3D" type="XROrigin3D" parent="."]
+
+[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+
+[node name="RayCast3D" type="RayCast3D" parent="XROrigin3D/XRCamera3D" groups=["camera_aimcast"]]
+target_position = Vector3(0, 0, -100)
+
+[node name="LeftHand" type="XRController3D" parent="XROrigin3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1, -0.5)
+tracker = &"left_hand"
+
+[node name="LeftHand" parent="XROrigin3D/LeftHand" instance=ExtResource("2_n71ou")]
+
+[node name="RightHand" type="XRController3D" parent="XROrigin3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, -0.5)
+tracker = &"right_hand"
+script = ExtResource("3_o04y2")
+
+[node name="RightHand" parent="XROrigin3D/RightHand" node_paths=PackedStringArray("music", "timer") instance=ExtResource("3_dt1ce")]
+music = NodePath("../AudioStreamPlayer3D")
+timer = NodePath("../Timer")
+
+[node name="MovementDirect" parent="XROrigin3D/RightHand" instance=ExtResource("4_pcjnw")]
+max_speed = 4.0
+
+[node name="MovementTurn" parent="XROrigin3D/RightHand" instance=ExtResource("5_7j2nl")]
+smooth_turn_speed = 5.0
+step_turn_delay = 0.05
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="XROrigin3D/RightHand"]
+stream = ExtResource("7_ltefd")
+
+[node name="Timer" type="Timer" parent="XROrigin3D/RightHand"]
+wait_time = 5.0
+
+[node name="PlayerBody" parent="XROrigin3D" instance=ExtResource("4_af872")]
+
+[node name="Floor" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.127664, -0.602221, -0.423399)
+mesh = SubResource("PlaneMesh_7vtax")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_k2le4")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_iiwrc")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+light_color = Color(1, 1, 0.439216, 1)
+light_energy = 0.238
+
+[node name="Post" parent="." instance=ExtResource("8_838fm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.71125, 0.901139, -4.21774)
+
+[node name="ShootingPost" parent="." instance=ExtResource("11_y0rcq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.99156, 0, -6.30058)
+
+[node name="ShootingPost2" parent="." instance=ExtResource("11_y0rcq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.28665, 0, 1.20932)
+
+[node name="Wall" parent="." instance=ExtResource("12_igvo7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -1)
+
+[node name="Wall2" parent="." instance=ExtResource("12_igvo7")]
+transform = Transform3D(-0.112284, 0, -0.993676, 0, 1, 0, 0.993676, 0, -0.112284, -4, 0, -22)
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("13_qdhub")
+
+[node name="TextManager" type="Label3D" parent="." node_paths=PackedStringArray("camera_aimcast") groups=["text_manager"]]
+transform = Transform3D(0.99899, 0.0449271, 0, -0.0449271, 0.99899, 0, 0, 0, 1, 0, 1.86874, 0)
+billboard = 1
+text = "Hello"
+script = ExtResource("14_u32yr")
+camera_aimcast = NodePath("../XROrigin3D/XRCamera3D/RayCast3D")
+
+[node name="TurrentEnemy" parent="." instance=ExtResource("15_aemk8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.70714, 0.405833, -15.6031)
+
+[connection signal="button_pressed" from="XROrigin3D/RightHand" to="XROrigin3D/RightHand/RightHand" method="_on_right_hand_button_pressed"]
+[connection signal="button_released" from="XROrigin3D/RightHand" to="XROrigin3D/RightHand/RightHand" method="_on_right_hand_button_released"]

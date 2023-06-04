@@ -1,0 +1,56 @@
+[gd_scene load_steps=8 format=3 uid="uid://babjh58iydy8d"]
+
+[ext_resource type="Script" path="res://Objects/Bullet/bullet.gd" id="1_fj0i2"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4b2r6"]
+albedo_color = Color(0.658824, 0.784314, 0.980392, 1)
+metallic = 0.92
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_3k764"]
+material = SubResource("StandardMaterial3D_4b2r6")
+radius = 0.05
+height = 0.3
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hr4ip"]
+radius = 0.05
+height = 0.3
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_y41or"]
+radius = 0.05
+height = 0.3
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_28tyy"]
+gravity = Vector3(2, 0, 0)
+
+[sub_resource type="SphereMesh" id="SphereMesh_rmw1f"]
+radius = 0.01
+height = 0.02
+
+[node name="Bullet" type="CharacterBody3D" groups=["bullet"]]
+script = ExtResource("1_fj0i2")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.0760577, 0.997103, 0, -0.997103, -0.0760577, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_3k764")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(-0.0654902, 0.997853, 0, -0.997853, -0.0654902, 0, 0, 0, 1, 0, 0.00262588, 0)
+shape = SubResource("CapsuleShape3D_hr4ip")
+
+[node name="Area3D" type="Area3D" parent="."]
+wind_force_magnitude = 0.097
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+transform = Transform3D(-0.0264037, 0.999651, 0, -0.999651, -0.0264037, 0, 0, 0, 1, 0, -0.00128759, 0)
+shape = SubResource("CapsuleShape3D_y41or")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 7.0
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.117186, -0.0399464, 0.0101755)
+process_material = SubResource("ParticleProcessMaterial_28tyy")
+draw_pass_1 = SubResource("SphereMesh_rmw1f")
+
+[connection signal="body_entered" from="Area3D" to="." method="_on_area_3d_body_entered"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

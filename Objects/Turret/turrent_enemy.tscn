@@ -1,0 +1,96 @@
+[gd_scene load_steps=9 format=3 uid="uid://dpq2qibu7ek3v"]
+
+[ext_resource type="Script" path="res://Objects/Turret/TurrentEnemy.gd" id="1_fk80e"]
+[ext_resource type="Script" path="res://Managers/DamageText.gd" id="2_tbx8m"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_rwno4"]
+
+[sub_resource type="Shader" id="Shader_1nqqo"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.0.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlick_ggx;
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo : source_color,filter_linear_mipmap,repeat_enable;
+uniform float point_size : hint_range(0,128);
+uniform float roughness : hint_range(0,1);
+uniform sampler2D texture_metallic : hint_default_white,filter_linear_mipmap,repeat_enable;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness : hint_roughness_r,filter_linear_mipmap,repeat_enable;
+uniform float specular;
+uniform float metallic;
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+uniform vec3 uv2_scale;
+uniform vec3 uv2_offset;
+
+
+void vertex() {
+	UV=UV*uv1_scale.xy+uv1_offset.xy;
+}
+
+
+
+
+
+
+void fragment() {
+	vec2 base_uv = UV;
+	vec4 albedo_tex = texture(texture_albedo,base_uv);
+	albedo_tex *= COLOR;
+	ALBEDO = albedo.rgb * albedo_tex.rgb * vec3(UV.y, UV.y, 1.0) ;
+	float metallic_tex = dot(texture(texture_metallic,base_uv),metallic_texture_channel);
+	METALLIC = metallic_tex * metallic;
+	vec4 roughness_texture_channel = vec4(1.0,0.0,0.0,0.0);
+	float roughness_tex = dot(texture(texture_roughness,base_uv),roughness_texture_channel);
+	ROUGHNESS = roughness_tex * roughness;
+	SPECULAR = specular;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_83u8n"]
+render_priority = 0
+shader = SubResource("Shader_1nqqo")
+shader_parameter/albedo = Color(0.392157, 0.454902, 1, 1)
+shader_parameter/point_size = 1.0
+shader_parameter/roughness = 1.0
+shader_parameter/metallic_texture_channel = Plane(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.58
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_388nf"]
+material = SubResource("ShaderMaterial_83u8n")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n4tey"]
+albedo_color = Color(0.32549, 0.352941, 0.356863, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_qagh4"]
+material = SubResource("StandardMaterial3D_n4tey")
+radius = 0.1
+height = 0.5
+
+[node name="TurrentEnemy" type="CharacterBody3D"]
+script = ExtResource("1_fk80e")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_rwno4")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_388nf")
+
+[node name="Turret" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.00973881, -0.999953, 0, 0.999953, -0.00973881, 0, 0.376393, 0.649586)
+mesh = SubResource("CapsuleMesh_qagh4")
+
+[node name="Marker3D" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.403244, 0.941389)
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 4.0
+
+[node name="DamageText" type="Node" parent="."]
+script = ExtResource("2_tbx8m")
